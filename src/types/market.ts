@@ -1,84 +1,106 @@
+// Company - simplified with companyId as registration ID
 export interface Company {
-  id: string;
+  id: number;
   name: string;
-  stockCode: string;
-  sector: string;
-  marketCap: string;
+  industry: string;
+  companyId: string; // Registration ID
 }
 
-export interface Insight {
-  id: string;
-  type: 'adverse' | 'positive' | 'trend';
-  title: string;
-  description: string;
-  date: string;
+// Executive Summary
+export interface ExecutiveSummary {
+  overview: string;
+  keyPositives: string[];
+  keyConcerns: string[];
+  confidence: number;
+  riskLevel: 'low' | 'moderate' | 'high';
+}
+
+// Business Strategy Signal
+export interface StrategySignal {
+  year: number;
+  summary: string;
   source: string;
-  sourceUrl: string;
   confidence: number;
 }
 
-export interface Filing {
-  id: string;
-  type: 'bursa' | 'news';
-  title: string;
+// Business Strategy Theme
+export interface BusinessStrategy {
+  theme: string;
+  consistencyScore: number;
+  trend: 'up' | 'down' | 'stable';
+  signals: StrategySignal[];
+}
+
+// Growth Potential
+export interface GrowthPotential {
+  growthLevel: 'low' | 'medium' | 'high';
+  growthScore: number;
+  confidence: number;
+  growthDrivers: string[];
+  constraints: string[];
   summary: string;
-  date: string;
-  source: string;
-  sourceUrl: string;
-  category: string;
 }
 
+// Sentiment Analysis
 export interface SentimentAnalysis {
-  id: string;
   topic: string;
-  sentiment: 'positive' | 'negative' | 'neutral';
-  score: number;
+  sentimentLabel: 'positive' | 'negative' | 'neutral';
+  sentimentScore: number;
+  confidence_level: 'low' | 'medium' | 'high';
   rationale: string;
-  citations: Citation[];
+  supportingSignals: string[];
 }
 
-export interface Entity {
-  id: string;
+// Risk Factor
+export interface RiskFactor {
   name: string;
-  type: 'person' | 'organization' | 'location' | 'event';
-  mentions: number;
+  score: number;
+  trend: 'up' | 'down' | 'stable';
+  severity: number;
+  managementTone: 'proactive' | 'reactive' | 'neutral';
+  keySignals: string[];
+  summary: string;
 }
 
-export interface Relationship {
-  sourceId: string;
-  targetId: string;
-  type: string;
-  description: string;
+// Risk Assessment
+export interface RiskAssessment {
+  overallScore: number;
+  posture: 'low' | 'moderate' | 'high';
+  summary: string;
+  factors: RiskFactor[];
 }
 
+// Methodology
+export interface Methodology {
+  signalSelection: string;
+  ordering: string;
+  lookbackYears: number;
+}
+
+// Details container
+export interface DashboardDetails {
+  methodology: Methodology;
+  businessStrategy: BusinessStrategy[];
+  growthPotential: GrowthPotential[];
+  sentimentAnalysis: SentimentAnalysis[];
+  riskAssessment: RiskAssessment;
+}
+
+// Citation
 export interface Citation {
   id: string;
   title: string;
-  url: string;
   source: string;
   date: string;
-  relevance: number;
+  url: string;
 }
 
-export interface RiskAssessment {
-  overallScore: number;
-  factors: {
-    name: string;
-    score: number;
-    weight: number;
-    trend: 'up' | 'down' | 'stable';
-  }[];
-  summary: string;
-  lastUpdated: string;
-}
-
+// Main Dashboard Data
 export interface DashboardData {
   company: Company;
-  insights: Insight[];
-  filings: Filing[];
-  sentimentAnalysis: SentimentAnalysis[];
-  entities: Entity[];
-  relationships: Relationship[];
-  riskAssessment: RiskAssessment;
+  asOf: string;
+  lookbackYears: number;
+  executiveSummary: ExecutiveSummary;
+  details: DashboardDetails;
   citations: Citation[];
 }

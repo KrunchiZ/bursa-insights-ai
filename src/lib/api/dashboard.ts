@@ -9,7 +9,7 @@ import { generateMockDashboard } from '@/data/mockData';
  * 
  * API Contract:
  * - Endpoint: POST /api/v1/analyze
- * - Request Body: { companyId, stockCode, name, sector }
+ * - Request Body: { id, companyId, name, industry }
  * - Response: { success: boolean, data: DashboardData, error?: string }
  */
 export async function analyzeCompany(company: Company): Promise<DashboardData> {
@@ -22,10 +22,10 @@ export async function analyzeCompany(company: Company): Promise<DashboardData> {
 
   // Real API call
   const request: AnalyzeCompanyRequest = {
-    companyId: company.id,
-    stockCode: company.stockCode,
+    id: company.id,
+    companyId: company.companyId,
     name: company.name,
-    sector: company.sector,
+    industry: company.industry,
   };
 
   const response = await apiClient.post<AnalyzeCompanyResponse>(

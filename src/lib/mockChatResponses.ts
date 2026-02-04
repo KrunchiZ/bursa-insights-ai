@@ -8,12 +8,12 @@ const generalResponses = [
   "Technology stocks on Bursa Malaysia have attracted attention due to the semiconductor supply chain developments in the region.",
 ];
 
-const companySpecificResponses = (companyName: string, stockCode: string) => [
-  `Based on my analysis of ${companyName} (${stockCode}), recent filings indicate stable operational performance with some notable developments in their quarterly announcements.`,
+const companySpecificResponses = (companyName: string, companyId: string) => [
+  `Based on my analysis of ${companyName} (${companyId}), recent filings indicate stable operational performance with some notable developments in their quarterly announcements.`,
   `${companyName} has shown mixed sentiment in recent news coverage. Key topics include their expansion plans and regulatory compliance updates.`,
   `The risk assessment for ${companyName} considers factors like management changes, sector headwinds, and financial health indicators from recent filings.`,
   `Entity extraction from ${companyName}'s filings reveals key relationships with subsidiaries and notable board member activities worth monitoring.`,
-  `Recent Bursa announcements for ${companyName} (${stockCode}) include material disclosures that may impact investor sentiment in the short term.`,
+  `Recent Bursa announcements for ${companyName} (${companyId}) include material disclosures that may impact investor sentiment in the short term.`,
 ];
 
 export function generateMockResponse(userMessage: string, context: ChatContext): string {
@@ -21,11 +21,11 @@ export function generateMockResponse(userMessage: string, context: ChatContext):
   
   // Simulate processing delay response
   if (context.selectedCompany) {
-    const { name, stockCode } = context.selectedCompany;
+    const { name, companyId } = context.selectedCompany;
     
     // Company-specific queries
     if (lowerMessage.includes('risk') || lowerMessage.includes('assessment')) {
-      return `For ${name} (${stockCode}), the current risk assessment indicates moderate concern based on recent filing patterns and sentiment analysis. Key risk factors include sector volatility and pending regulatory reviews.`;
+      return `For ${name} (${companyId}), the current risk assessment indicates moderate concern based on recent filing patterns and sentiment analysis. Key risk factors include sector volatility and pending regulatory reviews.`;
     }
     
     if (lowerMessage.includes('sentiment') || lowerMessage.includes('news')) {
@@ -33,15 +33,27 @@ export function generateMockResponse(userMessage: string, context: ChatContext):
     }
     
     if (lowerMessage.includes('filing') || lowerMessage.includes('announcement') || lowerMessage.includes('bursa')) {
-      return `Recent Bursa filings for ${name} (${stockCode}) include quarterly reports and material announcements. Notable disclosures involve changes in substantial shareholding and corporate governance updates.`;
+      return `Recent Bursa filings for ${name} (${companyId}) include quarterly reports and material announcements. Notable disclosures involve changes in substantial shareholding and corporate governance updates.`;
     }
     
     if (lowerMessage.includes('entity') || lowerMessage.includes('relationship')) {
       return `Entity extraction for ${name} reveals key relationships: Board members, subsidiary companies, and major shareholders. Notable connections include institutional investors and cross-holdings with related entities.`;
     }
     
+    if (lowerMessage.includes('strategy') || lowerMessage.includes('business')) {
+      return `Business strategy analysis for ${name} shows consistent focus on digital transformation and regional expansion. The consistency score is high (82%), indicating stable strategic direction over the past 5 years.`;
+    }
+    
+    if (lowerMessage.includes('growth') || lowerMessage.includes('potential')) {
+      return `Growth potential for ${name} is rated as HIGH with a score of 74%. Key drivers include digital banking adoption and ASEAN market expansion. Constraints include regulatory approval timelines and technology execution risk.`;
+    }
+    
+    if (lowerMessage.includes('summary') || lowerMessage.includes('overview')) {
+      return `Executive Summary for ${name}:\n\n${name} has delivered strong financial performance driven by digital transformation. Key positives include consistent revenue growth and improving ESG profile. Key concerns include ongoing regulatory review and management transitions.\n\nConfidence: 70% | Risk Level: Moderate`;
+    }
+    
     // General company query
-    const responses = companySpecificResponses(name, stockCode);
+    const responses = companySpecificResponses(name, companyId);
     return responses[Math.floor(Math.random() * responses.length)];
   }
   
@@ -55,7 +67,7 @@ export function generateMockResponse(userMessage: string, context: ChatContext):
   }
   
   if (lowerMessage.includes('help') || lowerMessage.includes('can you')) {
-    return "I can help you with:\n• Company-specific analysis (select a company first)\n• Risk assessment insights\n• Sentiment analysis of news and filings\n• Entity and relationship mapping\n• General Malaysian market intelligence\n\nTry searching for a company above to get detailed analysis!";
+    return "I can help you with:\n• Company-specific analysis (select a company first)\n• Risk assessment insights\n• Sentiment analysis of news and filings\n• Business strategy analysis\n• Growth potential assessment\n• General Malaysian market intelligence\n\nTry searching for a company above to get detailed analysis!";
   }
   
   // Default general response

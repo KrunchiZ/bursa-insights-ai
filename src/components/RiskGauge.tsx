@@ -1,5 +1,9 @@
-import { Shield, TrendingUp, TrendingDown, Minus, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Shield, TrendingUp, TrendingDown, Minus, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { RiskAssessment } from '@/types/market';
 import { cn } from '@/lib/utils';
 
@@ -86,6 +90,12 @@ const trendIcons = {
   stable: Minus,
 };
 
+const toneConfig = {
+  proactive: { color: 'text-positive', label: 'Proactive' },
+  reactive: { color: 'text-adverse', label: 'Reactive' },
+  neutral: { color: 'text-muted-foreground', label: 'Neutral' },
+};
+
 export function RiskGauge({ assessment }: RiskGaugeProps) {
   return (
     <Card className="glass-card h-full">
@@ -93,6 +103,9 @@ export function RiskGauge({ assessment }: RiskGaugeProps) {
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <Shield className="h-5 w-5 text-primary" />
           Risk Assessment
+          <Badge variant="outline" className="ml-2 text-xs capitalize">
+            {assessment.posture} posture
+          </Badge>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -100,47 +113,86 @@ export function RiskGauge({ assessment }: RiskGaugeProps) {
           <GaugeChart score={assessment.overallScore} />
         </div>
 
-        <div className="space-y-2">
-          {assessment.factors.map((factor) => {
-            const TrendIcon = trendIcons[factor.trend];
-            const getTrendColor = () => {
-              if (factor.trend === 'up' && factor.name.includes('Risk')) return 'text-adverse';
-              if (factor.trend === 'up') return 'text-positive';
-              if (factor.trend === 'down' && factor.name.includes('Risk')) return 'text-positive';
-              if (factor.trend === 'down') return 'text-adverse';
-              return 'text-muted-foreground';
-            };
+        <ScrollArea className="h-[200px] scrollbar-thin">
+          <Accordion type="single" collapsible className="space-y-1">
+            {assessment.factors.map((factor, index) => {
+              const TrendIcon = trendIcons[factor.trend];
+              const tone = toneConfig[factor.managementTone];
+              const getTrendColor = () => {
+                if (factor.trend === 'up' && factor.name.includes('Risk')) return 'text-adverse';
+                if (factor.trend === 'up') return 'text-positive';
+                if (factor.trend === 'down' && factor.name.includes('Risk')) return 'text-positive';
+                if (factor.trend === 'down') return 'text-adverse';
+                return 'text-muted-foreground';
+              };
 
-            return (
-              <div key={factor.name} className="flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium truncate">{factor.name}</span>
-                    <div className="flex items-center gap-1">
-                      <span className="text-xs text-muted-foreground">{factor.score}</span>
-                      <TrendIcon className={cn("h-3 w-3", getTrendColor())} />
+              return (
+                <AccordionItem
+                  key={index}
+                  value={`factor-${index}`}
+                  className="border-0"
+                >
+                  <AccordionTrigger className="hover:no-underline py-2">
+                    <div className="flex items-center gap-3 w-full">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs font-medium truncate">{factor.name}</span>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-muted-foreground">{factor.score}</span>
+                            <TrendIcon className={cn("h-3 w-3", getTrendColor())} />
+                          </div>
+                        </div>
+                        <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className={cn(
+                              "h-full rounded-full transition-all",
+                              factor.score >= 70 ? 'bg-positive' : factor.score >= 40 ? 'bg-warning' : 'bg-adverse'
+                            )}
+                            style={{ width: `${factor.score}%` }}
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={cn(
-                        "h-full rounded-full transition-all",
-                        factor.score >= 70 ? 'bg-positive' : factor.score >= 40 ? 'bg-warning' : 'bg-adverse'
+                  </AccordionTrigger>
+                  <AccordionContent className="pb-2">
+                    <div className="space-y-2 pl-1">
+                      <p className="text-xs text-muted-foreground">{factor.summary}</p>
+                      <div className="flex items-center gap-2">
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge variant="outline" className="text-[10px]">
+                                Severity: {Math.round(factor.severity * 100)}%
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Impact severity on overall risk</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <Badge variant="outline" className={cn("text-[10px]", tone.color)}>
+                          {tone.label}
+                        </Badge>
+                      </div>
+                      {factor.keySignals.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {factor.keySignals.map((signal, sIdx) => (
+                            <Badge key={sIdx} variant="secondary" className="text-[10px]">
+                              {signal}
+                            </Badge>
+                          ))}
+                        </div>
                       )}
-                      style={{ width: `${factor.score}%` }}
-                    />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
+        </ScrollArea>
 
         <div className="pt-2 border-t border-border">
           <p className="text-xs text-muted-foreground leading-relaxed">{assessment.summary}</p>
-          <p className="text-[10px] text-muted-foreground mt-2">
-            Last updated: {new Date(assessment.lastUpdated).toLocaleString()}
-          </p>
         </div>
       </CardContent>
     </Card>

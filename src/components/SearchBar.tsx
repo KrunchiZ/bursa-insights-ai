@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Search, Building2, X } from 'lucide-react';
+import { Search, Building2, X, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Company } from '@/types/market';
-import { malaysianCompanies } from '@/data/mockData';
+import { fetchCompanies } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 interface SearchBarProps {
@@ -14,23 +14,34 @@ interface SearchBarProps {
 export function SearchBar({ onSelectCompany, selectedCompany }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
-  const [filteredCompanies, setFilteredCompanies] = useState<Company[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Fetch companies when query changes
   useEffect(() => {
-    if (query.length > 0) {
-      const filtered = malaysianCompanies.filter(
-        (company) =>
-          company.name.toLowerCase().includes(query.toLowerCase()) ||
-          company.stockCode.includes(query)
-      );
-      setFilteredCompanies(filtered);
-      setIsOpen(true);
-    } else {
-      setFilteredCompanies([]);
-      setIsOpen(false);
-    }
+    const fetchData = async () => {
+      if (query.length > 0) {
+        setIsLoading(true);
+        try {
+          const results = await fetchCompanies(query);
+          setCompanies(results);
+          setIsOpen(true);
+        } catch (error) {
+          console.error('Failed to fetch companies:', error);
+          setCompanies([]);
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
+        setCompanies([]);
+        setIsOpen(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(fetchData, 300);
+    return () => clearTimeout(debounceTimer);
   }, [query]);
 
   useEffect(() => {
@@ -63,7 +74,7 @@ export function SearchBar({ onSelectCompany, selectedCompany }: SearchBarProps) 
         <Input
           ref={inputRef}
           type="text"
-          placeholder="Search Malaysian companies by name or stock code..."
+          placeholder="Search Malaysian companies by name or registration ID..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="h-14 pl-12 pr-12 text-base bg-card border-border shadow-[var(--shadow-card)] focus:shadow-[var(--shadow-elevated)] transition-shadow"
@@ -80,38 +91,42 @@ export function SearchBar({ onSelectCompany, selectedCompany }: SearchBarProps) 
         )}
       </div>
 
-      {isOpen && filteredCompanies.length > 0 && (
+      {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-[var(--shadow-overlay)] overflow-hidden z-50">
-          <ul className="max-h-80 overflow-auto scrollbar-thin">
-            {filteredCompanies.map((company) => (
-              <li key={company.id}>
-                <button
-                  onClick={() => handleSelect(company)}
-                  className={cn(
-                    "w-full px-4 py-3 flex items-center gap-4 hover:bg-accent transition-colors text-left",
-                    selectedCompany?.id === company.id && "bg-accent"
-                  )}
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <Building2 className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{company.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {company.stockCode} · {company.sector}
-                    </p>
-                  </div>
-                  <span className="text-sm text-muted-foreground">{company.marketCap}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {isOpen && query.length > 0 && filteredCompanies.length === 0 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-lg shadow-[var(--shadow-overlay)] p-6 text-center z-50">
-          <p className="text-muted-foreground">No companies found matching "{query}"</p>
+          {isLoading ? (
+            <div className="flex items-center justify-center p-6">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-muted-foreground">Searching...</span>
+            </div>
+          ) : companies.length > 0 ? (
+            <ul className="max-h-80 overflow-auto scrollbar-thin">
+              {companies.map((company) => (
+                <li key={company.id}>
+                  <button
+                    onClick={() => handleSelect(company)}
+                    className={cn(
+                      "w-full px-4 py-3 flex items-center gap-4 hover:bg-accent transition-colors text-left",
+                      selectedCompany?.id === company.id && "bg-accent"
+                    )}
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                      <Building2 className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{company.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {company.companyId} · {company.industry}
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <div className="p-6 text-center">
+              <p className="text-muted-foreground">No companies found matching "{query}"</p>
+            </div>
+          )}
         </div>
       )}
     </div>

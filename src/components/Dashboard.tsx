@@ -1,10 +1,11 @@
-import { Building2, TrendingUp, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Building2, Shield, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DashboardData } from '@/types/market';
-import { InsightCard } from './InsightCard';
-import { FilingsPanel } from './FilingsPanel';
+import { ExecutiveSummaryPanel } from './ExecutiveSummaryPanel';
+import { BusinessStrategyPanel } from './BusinessStrategyPanel';
+import { GrowthPotentialPanel } from './GrowthPotentialPanel';
 import { SentimentPanel } from './SentimentPanel';
-import { EntityPanel } from './EntityPanel';
 import { RiskGauge } from './RiskGauge';
 import { CitationsPanel } from './CitationsPanel';
 
@@ -13,9 +14,18 @@ interface DashboardProps {
 }
 
 export function Dashboard({ data }: DashboardProps) {
-  const adverseCount = data.insights.filter((i) => i.type === 'adverse').length;
-  const positiveCount = data.insights.filter((i) => i.type === 'positive').length;
-  const trendCount = data.insights.filter((i) => i.type === 'trend').length;
+  const getRiskBadgeVariant = (riskLevel: string) => {
+    switch (riskLevel) {
+      case 'low':
+        return 'default';
+      case 'moderate':
+        return 'secondary';
+      case 'high':
+        return 'destructive';
+      default:
+        return 'secondary';
+    }
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -28,57 +38,44 @@ export function Dashboard({ data }: DashboardProps) {
           <div>
             <h1 className="text-2xl font-bold">{data.company.name}</h1>
             <div className="flex items-center gap-2 mt-1">
-              <Badge variant="secondary">{data.company.stockCode}</Badge>
-              <span className="text-sm text-muted-foreground">{data.company.sector}</span>
-              <span className="text-sm text-muted-foreground">·</span>
-              <span className="text-sm text-muted-foreground">{data.company.marketCap}</span>
+              <Badge variant="secondary">{data.company.companyId}</Badge>
+              <span className="text-sm text-muted-foreground">{data.company.industry}</span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-adverse/10">
-            <AlertTriangle className="h-4 w-4 text-adverse" />
-            <span className="text-sm font-medium text-adverse">{adverseCount} Adverse</span>
+          <Badge variant={getRiskBadgeVariant(data.executiveSummary.riskLevel)} className="px-3 py-1">
+            <Shield className="h-4 w-4 mr-1" />
+            {data.executiveSummary.riskLevel.charAt(0).toUpperCase() + data.executiveSummary.riskLevel.slice(1)} Risk
+          </Badge>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted">
+            <span className="text-sm text-muted-foreground">
+              Confidence: {Math.round(data.executiveSummary.confidence * 100)}%
+            </span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-positive/10">
-            <CheckCircle className="h-4 w-4 text-positive" />
-            <span className="text-sm font-medium text-positive">{positiveCount} Positive</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-primary/10">
-            <TrendingUp className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">{trendCount} Trends</span>
+          <div className="text-xs text-muted-foreground">
+            As of: {new Date(data.asOf).toLocaleDateString()}
           </div>
         </div>
       </div>
 
-      {/* Insights Section */}
-      <section>
-        <h2 className="text-lg font-semibold mb-4">Surface Insights</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {data.insights.map((insight) => (
-            <InsightCard key={insight.id} insight={insight} />
-          ))}
-        </div>
-      </section>
+      {/* Executive Summary */}
+      <ExecutiveSummaryPanel summary={data.executiveSummary} />
+
+      {/* Strategy & Growth */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <BusinessStrategyPanel strategies={data.details.businessStrategy} />
+        <GrowthPotentialPanel growth={data.details.growthPotential} />
+      </div>
 
       {/* Analysis Grid */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-1">
-          <FilingsPanel filings={data.filings} />
-        </div>
-        <div className="lg:col-span-1">
-          <SentimentPanel analysis={data.sentimentAnalysis} />
-        </div>
-        <div className="lg:col-span-1">
-          <RiskGauge assessment={data.riskAssessment} />
-        </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SentimentPanel analysis={data.details.sentimentAnalysis} />
+        <RiskGauge assessment={data.details.riskAssessment} />
       </div>
 
-      {/* Entities and Citations */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <EntityPanel entities={data.entities} relationships={data.relationships} />
-        <CitationsPanel citations={data.citations} />
-      </div>
+      {/* Citations */}
+      <CitationsPanel citations={data.citations} />
     </div>
   );
 }
