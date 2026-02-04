@@ -1,17 +1,14 @@
-import { LinkIcon, ExternalLink, Star } from 'lucide-react';
+import { LinkIcon, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Citation } from '@/types/market';
-import { cn } from '@/lib/utils';
 
 interface CitationsPanelProps {
   citations: Citation[];
 }
 
 export function CitationsPanel({ citations }: CitationsPanelProps) {
-  const sortedCitations = [...citations].sort((a, b) => b.relevance - a.relevance);
-
   return (
     <Card className="glass-card">
       <CardHeader className="pb-3">
@@ -25,8 +22,8 @@ export function CitationsPanel({ citations }: CitationsPanelProps) {
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-[200px] scrollbar-thin">
-          <div className="space-y-2">
-            {sortedCitations.map((citation, index) => (
+          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+            {citations.map((citation, index) => (
               <a
                 key={citation.id}
                 href={citation.url}
@@ -48,15 +45,6 @@ export function CitationsPanel({ citations }: CitationsPanelProps) {
                     <span>{citation.source}</span>
                     <span>·</span>
                     <span>{citation.date}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Star className={cn(
-                      "h-3 w-3",
-                      citation.relevance >= 0.9 ? 'text-warning fill-warning' : 'text-muted-foreground'
-                    )} />
-                    <span className="text-xs text-muted-foreground">
-                      {Math.round(citation.relevance * 100)}% relevance
-                    </span>
                   </div>
                 </div>
               </a>

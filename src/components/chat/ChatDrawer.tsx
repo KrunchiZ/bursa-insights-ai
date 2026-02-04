@@ -4,7 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
-import { ChatMessage as ChatMessageType, ChatContext } from '@/types/chat';
+import { ChatMessage as ChatMessageType, ChatContext, ConversationMessage } from '@/types/chat';
 import { sendChatMessage } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { Bot } from 'lucide-react';
@@ -46,11 +46,17 @@ export function ChatDrawer({ open, onOpenChange, context }: ChatDrawerProps) {
     setIsTyping(true);
 
     try {
-      // Build conversation history for context
-      const conversationHistory = messages.map((msg) => ({
+      // Build conversation history for API (includes all previous messages)
+      const conversationHistory: ConversationMessage[] = messages.map((msg) => ({
         role: msg.role,
         content: msg.content,
       }));
+
+      // Add the current user message to history
+      conversationHistory.push({
+        role: 'user',
+        content,
+      });
 
       const response = await sendChatMessage(content, context, conversationHistory);
       

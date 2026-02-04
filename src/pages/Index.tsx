@@ -76,8 +76,8 @@ const Index = () => {
           selectedCompany: selectedCompany
             ? {
                 name: selectedCompany.name,
-                stockCode: selectedCompany.stockCode,
-                sector: selectedCompany.sector,
+                companyId: selectedCompany.companyId,
+                industry: selectedCompany.industry,
               }
             : null,
         }}
