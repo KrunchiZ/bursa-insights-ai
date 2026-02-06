@@ -1,0 +1,100 @@
+import json
+from datetime import datetime
+from copy import deepcopy
+from string import Template
+from functools import lru_cache
+from app.core.database import from_dict
+from app.core.logging import logger
+from app.services.ai_prompt import get_gemini_client
+from app.services.organize_section import (
+    flexible_iterator, adjust_json_enum_key_2_str, adjust_raw_json_with_enum,
+    save_ai_response_schema
+)
+from app.models.report import Company, CompanyReport, ReportingPeriod
+from app.models.source import FinancialElementBase, PossibleStatement, Source
+from app.models.statements import IncomeStatement, BalanceSheet, CashFlowStatement
+from app.schemas.statements import IncomeStatements, BalanceSheets, CashFlowStatments 
+
+template_income_sys = """
+You are analyzing the income statement from a company's annual report.
+The tables are represented in html form
+"""
+
+template_balance_sys = """
+You are analyzing the income statement from a company's annual report.
+The tables are represented in html form
+"""
+
+template_cash_sys = """
+You are analyzing the income statement from a company's annual report.
+The tables are represented in html form
+"""
+
+template_user = Template(
+"""
+TITLE:
+$title
+
+TABLES:
+$tables
+"""
+)
+
+@lru_cache
+def __cache_mapping():
+    return {
+        PossibleStatement.income_statement: (template_income_sys, IncomeStatements, IncomeStatement),
+        PossibleStatement.balance_sheet: (template_balance_sys, BalanceSheets, BalanceSheet),
+        PossibleStatement.cash_flow_statement: (template_cash_sys, CashFlowStatments, CashFlowStatement)
+    }
+
+def prepare_statement_data(sources: list[Source]):
+    check_dup = set()
+    mapping = __cache_mapping()
+    data_group : dict[PossibleStatement, tuple[str, str, int]]= {}
+    for data in sources:
+        if not data.tables or data.statement_type not in mapping:
+            # print(data.statement_type)
+            # print('trigger skip')
+            continue
+        if data.statement_type in check_dup:
+            # print('debug found dup')
+            continue
+        check_dup.add(data.statement_type)
+        data_group[data.statement_type] = (data.title or '', data.tables, data.id)
+        # assume only one source of statement is valid
+    return data_group
+
+def extract_statement_from_sources(
+        report: CompanyReport, company: Company,
+        data_group: dict[str, tuple[str, str, int]] | None = None,
+        resume_index: int = 0, expected_year: int | None = None 
+):
+    mapping = __cache_mapping()
+    client = get_gemini_client()
+    if not data_group:
+        data = prepare_statement_data(report.report_sources)
+    else:
+        data = adjust_raw_json_with_enum(data_group, PossibleStatement)
+    if not expected_year:
+        expected_year = int(datetime.now().year)
+    logger.info(f'checking data fields {data.keys()}')
+    for idx, type_, (sys_prompt, prompt_schema, db_model) in flexible_iterator(mapping, resume_index):
+        try:
+            logger.info(f'looping extract statement at {type_}')
+            title, table, id_ = data[type_]
+        except:
+            logger.warning(f'{report.celery_task_id}, {report.file_key}: {type_} not found')
+            continue
+        usr_prompt = template_user.substitute(title=title, tables=table)
+        response = client.single_prompt_answer(
+            sys_prompt=sys_prompt, usr_prompt=usr_prompt, response_schema=prompt_schema
+        )
+        if not response:
+            return {'status': False, 'data': adjust_json_enum_key_2_str(data), 'index': idx}
+        logger.info(f'{type(response)}')
+        save_ai_response_schema(
+            company, response, db_model, type_.value, # type: ignore
+            report.uploaded_at, expected_year, sources_id=(id_,),  # type: ignore
+        ) 
+    return {'status': True, 'data': None, 'index': None}
