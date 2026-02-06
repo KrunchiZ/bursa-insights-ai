@@ -1,18 +1,18 @@
 import { ChatContext } from '@/types/chat';
 import { API_CONFIG } from './config';
 import { apiClient } from './client';
-import { ChatRequest, ChatResponse } from './types';
+import { ChatResponse } from './types';
 import { generateMockResponse } from '@/lib/mockChatResponses';
 
 /**
  * Send a chat message and get AI response
  * 
- * API Contract:
- * - Endpoint: POST /api/v1/chat
+ * API Contract (matches backend/app/schemas/ask_bot.py):
+ * - Endpoint: POST /api/bot/ask
  * - Request Body: { 
  *     message: string,
- *     context: { selectedCompany: { name, stockCode, sector } | null },
- *     conversationHistory?: Array<{ role: 'user' | 'assistant', content: string }>
+ *     conversationHistory: string[],  // Backend alias: chat_history
+ *     selectedCompany: number | null  // Backend alias: context.company_id
  *   }
  * - Response: { success: boolean, message: string, error?: string }
  */
@@ -28,13 +28,14 @@ export async function sendChatMessage(
     return generateMockResponse(message, context);
   }
 
-  // Real API call
-  const request: ChatRequest = {
+  // Transform conversation history to simple string array for backend
+  const chatHistory = conversationHistory?.map(msg => `${msg.role}: ${msg.content}`) || [];
+
+  // Build request matching backend schema
+  const request = {
     message,
-    context: {
-      selectedCompany: context.selectedCompany,
-    },
-    conversationHistory,
+    conversationHistory: chatHistory,
+    selectedCompany: context.selectedCompany?.id || null,
   };
 
   const response = await apiClient.post<ChatResponse>(

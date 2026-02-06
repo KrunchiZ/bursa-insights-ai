@@ -75,6 +75,7 @@ const Index = () => {
         context={{
           selectedCompany: selectedCompany
             ? {
+                id: selectedCompany.id,
                 name: selectedCompany.name,
                 companyId: selectedCompany.companyId,
                 industry: selectedCompany.industry,

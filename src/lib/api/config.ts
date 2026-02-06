@@ -1,26 +1,23 @@
-// API Configuration - Replace these with your actual endpoints
-const mockData: boolean = import.meta.env.MOCK_DATA === 'true';
-
+// API Configuration - Connected to backend
 export const API_CONFIG = {
-  // Base URL for your API
-  baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://api.example.com',
+  // Base URL for your API - defaults to localhost:8000 for local development
+  baseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
   
   // Dashboard endpoints
   dashboard: {
-    base: '/api/dashboard/company' // GET - company
-    // analyze: '/api/v1/analyze', // POST - Analyze a company
+    base: '/api/dashboard/company' // GET /api/dashboard/company/{company_id}
   },
   
   // Companies endpoints
   companies: {
-    list:  '/api/dashboard/company', // GET - List all companies
+    list: '/api/dashboard/company', // GET /api/dashboard/company?name=search
   },
  
   // Chat endpoints  
   chat: {
-    send: '/api/bot/chat', // POST - Send chat message
+    send: '/api/bot/ask', // POST /api/bot/ask
   },
   
-  // Enable mock mode (set to false when API is ready)
-  useMockData: mockData
+  // Mock mode disabled - using real backend
+  useMockData: false
 };
