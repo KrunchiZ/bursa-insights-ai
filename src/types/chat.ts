@@ -7,9 +7,10 @@ export interface ChatMessage {
 
 export interface ChatContext {
   selectedCompany: {
+    id: number; // Added for backend API
     name: string;
-    companyId: string; // Changed from stockCode
-    industry: string; // Changed from sector
+    companyId: string; // Registration ID
+    industry: string;
   } | null;
 }
 
