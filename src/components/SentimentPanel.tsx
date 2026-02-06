@@ -32,7 +32,7 @@ const sentimentConfig = {
   },
 };
 
-const mapDegreeToKey = (degree: DegreeLevel): keyof typeof levelConfig => {
+const mapDegreeToKey = (degree: DegreeLevel): keyof typeof confidenceConfig => {
   const normalized = degree.toLowerCase(); // convert input to lowercase
 
   switch (normalized) {

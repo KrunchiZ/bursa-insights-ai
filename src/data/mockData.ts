@@ -89,7 +89,7 @@ export const generateMockDashboard = (company: Company): DashboardData => ({
 
     growthPotential: [
       {
-        growthLevel: 'high',
+        growthLevel: 'High',
         growthScore: 0.74,
         confidence: 0.81,
         growthDrivers: [
@@ -110,7 +110,7 @@ export const generateMockDashboard = (company: Company): DashboardData => ({
         topic: 'Financial Performance',
         sentimentLabel: 'positive',
         sentimentScore: 0.72,
-        confidence_level: 'high',
+        confidenceLevel: 'High',
         rationale: 'Revenue and profitability have shown consistent improvement over the past five years, driven by digital adoption and cost discipline.',
         supportingSignals: ['rev-growth-2020-2024', 'margin-expansion-2022-2024'],
       },
@@ -118,7 +118,7 @@ export const generateMockDashboard = (company: Company): DashboardData => ({
         topic: 'Regulatory Compliance',
         sentimentLabel: 'negative',
         sentimentScore: -0.41,
-        confidence_level: 'high',
+        confidenceLevel: 'High',
         rationale: 'Persistent regulatory emphasis on AML compliance and recent external review have increased uncertainty.',
         supportingSignals: ['risk-aml-2020-2024', 'news-bnm-review-2024'],
       },
@@ -126,7 +126,7 @@ export const generateMockDashboard = (company: Company): DashboardData => ({
         topic: 'Corporate Governance',
         sentimentLabel: 'neutral',
         sentimentScore: 0.12,
-        confidence_level: 'medium',
+        confidenceLevel: 'Moderate',
         rationale: 'CFO departure balanced by strong internal succession planning. Board composition remains stable with experienced directors.',
         supportingSignals: ['cfo-resignation-2024', 'board-stability-score'],
       },
@@ -134,7 +134,7 @@ export const generateMockDashboard = (company: Company): DashboardData => ({
         topic: 'Strategic Initiatives',
         sentimentLabel: 'positive',
         sentimentScore: 0.78,
-        confidence_level: 'high',
+        confidenceLevel: 'High',
         rationale: 'New fintech partnership positions company well for digital transformation. ASEAN expansion aligns with regional growth opportunities.',
         supportingSignals: ['partnership-announcement-2024', 'expansion-pipeline'],
       },
@@ -142,7 +142,7 @@ export const generateMockDashboard = (company: Company): DashboardData => ({
 
     riskAssessment: {
       overallScore: 62,
-      posture: 'moderate',
+      posture: 'Moderate',
       summary: `${company.name} presents a moderate risk profile with strong financial fundamentals offset by elevated regulatory and governance-related risks.`,
       factors: [
         {
